@@ -1,0 +1,27 @@
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:orientation="vertical"
+	android:padding="16dp"
+	tools:context="eu.vmpay.places.fragments.PlaceDetailFragment">
+
+	<TextView
+		android:id="@+id/place_detail"
+		style="?android:attr/textAppearanceLarge"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:textIsSelectable="true"
+		/>
+
+	<fragment
+		android:id="@+id/map"
+		android:name="com.google.android.gms.maps.SupportMapFragment"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:layout_marginTop="@dimen/fab_margin"
+		tools:context="eu.vmpay.places.activities.MapsActivity"/>
+
+
+</LinearLayout>
