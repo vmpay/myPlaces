@@ -10,4 +10,6 @@ import io.reactivex.Observable;
 public interface IRestClient
 {
 	Observable<Places> enqueuePlaces();
+
+	Observable<Places> enqueuePlaces(double lat, double lon);
 }

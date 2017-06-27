@@ -35,7 +35,7 @@ public class RestClient implements IRestClient
 				.build();
 	}
 
-	public Observable<Places> enqueuePlaces()
+	public Observable<Places> enqueuePlaces(final double lat, final double lon)
 	{
 		placesObservable = Observable.create(new ObservableOnSubscribe<Places>()
 		{
@@ -43,7 +43,7 @@ public class RestClient implements IRestClient
 			public void subscribe(@NonNull final ObservableEmitter<Places> e) throws Exception
 			{
 				GooglePlacesService googlePlacesService = retrofit.create(GooglePlacesService.class);
-				final Call<Places> call = googlePlacesService.getPlaces("52,21", 1500, apiKey);
+				final Call<Places> call = googlePlacesService.getPlaces(lat + "," + lon, 1500, apiKey);
 				e.setCancellable(new Cancellable()
 				{
 					@Override
@@ -78,6 +78,11 @@ public class RestClient implements IRestClient
 				.subscribeOn(Schedulers.io())
 				.observeOn(AndroidSchedulers.mainThread());
 		return placesObservable;
+	}
+
+	public Observable<Places> enqueuePlaces()
+	{
+		return enqueuePlaces(52, 21);
 	}
 
 }
