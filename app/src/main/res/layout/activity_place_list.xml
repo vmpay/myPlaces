@@ -21,10 +21,56 @@
 
 	</android.support.design.widget.AppBarLayout>
 
+	<LinearLayout
+		android:id="@+id/llFixedLocation"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:baselineAligned="false"
+		android:orientation="horizontal"
+		android:weightSum="1">
+
+		<android.support.design.widget.TextInputLayout
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="?attr/actionBarSize"
+			android:layout_weight="0.5">
+
+			<android.support.design.widget.TextInputEditText
+				android:id="@+id/etLat"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:hint="Latitude"
+				android:imeOptions="actionNext"
+				android:inputType="numberDecimal|numberSigned"
+				android:maxLines="1"/>
+
+		</android.support.design.widget.TextInputLayout>
+
+		<android.support.design.widget.TextInputLayout
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="?attr/actionBarSize"
+			android:layout_weight="0.5">
+
+			<android.support.design.widget.TextInputEditText
+				android:id="@+id/etLong"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:hint="Longitude"
+				android:imeOptions="actionDone"
+				android:inputType="numberDecimal|numberSigned"
+				android:maxLines="1"/>
+
+		</android.support.design.widget.TextInputLayout>
+
+	</LinearLayout>
+
+
 	<FrameLayout
 		android:id="@+id/frameLayout"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
+		android:layout_marginTop="?attr/actionBarSize"
 		app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
 		<include layout="@layout/place_list"/>

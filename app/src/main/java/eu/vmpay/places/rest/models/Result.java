@@ -1,10 +1,10 @@
 
 package eu.vmpay.places.rest.models;
 
-import java.util.List;
-
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+
+import java.util.List;
 
 public class Result
 {
@@ -38,18 +38,13 @@ public class Result
 	public String vicinity;
 	@SerializedName("rating")
 	@Expose
-	public Integer rating;
+	public Double rating;
 	@SerializedName("opening_hours")
 	@Expose
 	public OpeningHours openingHours;
 	@SerializedName("photos")
 	@Expose
 	public List<Photo> photos = null;
-
-	public void setName(String name)
-	{
-		this.name = name;
-	}
 
 	public Geometry getGeometry()
 	{
@@ -64,6 +59,11 @@ public class Result
 	public String getName()
 	{
 		return name;
+	}
+
+	public void setName(String name)
+	{
+		this.name = name;
 	}
 
 	public String getVicinity()

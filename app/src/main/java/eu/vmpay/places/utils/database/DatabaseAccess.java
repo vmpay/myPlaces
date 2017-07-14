@@ -26,14 +26,12 @@ public class DatabaseAccess implements IDatabaseClient
 {
 	private static final String TAG = "DatabaseAccess";
 	private final String databaseName;
+	private final String[] tableNames;
+	private final String[] tableCreateQueries;
 	private int databaseVersion;
-
 	private DbHelper dbHelper = null;
 	private SQLiteDatabase database = null;
 	private Context context;
-
-	private final String[] tableNames;
-	private final String[] tableCreateQueries;
 
 	public DatabaseAccess(String dbName, int databaseVersion, Context context, String[] tableNames, String[] tableCreateQueries)
 	{
@@ -43,35 +41,6 @@ public class DatabaseAccess implements IDatabaseClient
 		this.tableNames = tableNames;
 		this.tableCreateQueries = tableCreateQueries;
 		openDatabase();
-	}
-
-	class DbHelper extends SQLiteOpenHelper
-	{
-		public DbHelper(Context context)
-		{
-			super(context, databaseName, null, databaseVersion);
-		}
-
-		@Override
-		public void onCreate(SQLiteDatabase sqLiteDatabase)
-		{
-			if(tableCreateQueries == null) return;
-			for(String tableCreateQuery : tableCreateQueries)
-			{
-				sqLiteDatabase.execSQL(tableCreateQuery);
-			}
-		}
-
-		@Override
-		public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1)
-		{
-			if(tableNames == null) return;
-			for(String tableName : tableNames)
-			{
-				sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + tableName);
-			}
-			onCreate(sqLiteDatabase);
-		}
 	}
 
 	@Override
@@ -187,7 +156,7 @@ public class DatabaseAccess implements IDatabaseClient
 	public List<ContentValues> select(DataModel databaseModel, int limit)
 	{
 		Cursor cursor = null;
-		List<ContentValues> results = null;
+		List<ContentValues> results;
 		try
 		{
 			cursor = database.query(databaseModel.getTableName(), databaseModel.getColumns(),
@@ -251,7 +220,7 @@ public class DatabaseAccess implements IDatabaseClient
 
 	public <T extends DataModel> Observable<DbOperationStatus> insertOrUpdateRxStyle(final List<T> DataModelList)
 	{
-		Observable<DbOperationStatus> observable = Observable.create(new ObservableOnSubscribe<DbOperationStatus>()
+		return Observable.create(new ObservableOnSubscribe<DbOperationStatus>()
 		{
 			@Override
 			public void subscribe(@NonNull ObservableEmitter<DbOperationStatus> e) throws Exception
@@ -265,6 +234,34 @@ public class DatabaseAccess implements IDatabaseClient
 		})
 				.subscribeOn(Schedulers.io())
 				.observeOn(AndroidSchedulers.mainThread());
-		return observable;
+	}
+
+	class DbHelper extends SQLiteOpenHelper
+	{
+		public DbHelper(Context context)
+		{
+			super(context, databaseName, null, databaseVersion);
+		}
+
+		@Override
+		public void onCreate(SQLiteDatabase sqLiteDatabase)
+		{
+			if(tableCreateQueries == null) return;
+			for(String tableCreateQuery : tableCreateQueries)
+			{
+				sqLiteDatabase.execSQL(tableCreateQuery);
+			}
+		}
+
+		@Override
+		public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1)
+		{
+			if(tableNames == null) return;
+			for(String tableName : tableNames)
+			{
+				sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + tableName);
+			}
+			onCreate(sqLiteDatabase);
+		}
 	}
 }

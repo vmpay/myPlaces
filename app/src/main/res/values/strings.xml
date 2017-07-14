@@ -2,4 +2,6 @@
 	<string name="app_name">Places</string>
 	<string name="title_place_list">Places</string>
 	<string name="title_place_detail">Place Detail</string>
+	<string name="current_location">Current location</string>
+	<string name="fixed_location">Fixed location</string>
 </resources>
