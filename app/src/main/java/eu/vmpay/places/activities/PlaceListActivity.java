@@ -1,5 +1,6 @@
 package eu.vmpay.places.activities;
 
+import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -9,7 +10,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.LinearLayout;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +43,10 @@ public class PlaceListActivity extends AppCompatActivity
 	TextInputEditText etLat;
 	@BindView(R.id.etLong)
 	TextInputEditText etLong;
+	@BindView(R.id.llFixedLocation)
+	LinearLayout llFixedLocation;
+	@BindView(R.id.fab)
+	FloatingActionButton fab;
 	private boolean mTwoPane;
 	private AppController appController;
 	private IRestClient restClient;
@@ -66,13 +74,12 @@ public class PlaceListActivity extends AppCompatActivity
 		setSupportActionBar(toolbar);
 		toolbar.setTitle(getTitle());
 
-		FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 		fab.setOnClickListener(new View.OnClickListener()
 		{
 			@Override
 			public void onClick(View view)
 			{
-				refresh(view);
+				refresh();
 			}
 		});
 
@@ -96,17 +103,44 @@ public class PlaceListActivity extends AppCompatActivity
 		unbinder.unbind();
 	}
 
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu)
+	{
+		getMenuInflater().inflate(R.menu.option_menu, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item)
+	{
+		switch(item.getItemId())
+		{
+			case R.id.menu_current_location:
+				item.setChecked(true);
+				placeAdapter.notifyDataSetChanged();
+				Observable<Location> locationObservable = appController.getLocationClient().getLastKnownPosition();
+				compositeDisposable.add(locationObservable.subscribeWith(createLocationDisposableObserver()));
+				return true;
+			case R.id.menu_fixed_location:
+				item.setChecked(true);
+				placeAdapter.notifyDataSetChanged();
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
+		}
+	}
+
 	private void setupRecyclerView(@NonNull RecyclerView recyclerView)
 	{
 		placeAdapter = new PlaceAdapter(appController.getMyPlacesModelList(), mTwoPane, getSupportFragmentManager());
 		recyclerView.setAdapter(placeAdapter);
 	}
 
-	private void refresh(final View view)
+	private void refresh()
 	{
 		double latitude = 52, longitude = 21;
 		Log.d(TAG, "Refresh! Menu");
-		view.setEnabled(false);
+		fab.setEnabled(false);
 		if(!etLat.getText().toString().isEmpty() && !etLong.getText().toString().isEmpty())
 		{
 			try
@@ -115,28 +149,30 @@ public class PlaceListActivity extends AppCompatActivity
 				longitude = Double.parseDouble(etLong.getText().toString());
 			} catch(NumberFormatException e)
 			{
-				Snackbar.make(view, e.toString(), Snackbar.LENGTH_SHORT)
+				Snackbar.make(fab, e.toString(), Snackbar.LENGTH_SHORT)
 						.setAction("Action", null).show();
 			}
 		}
 		Observable<Places> placesObserver = restClient.enqueuePlaces(latitude, longitude);
-		compositeDisposable.add(placesObserver.subscribeWith(new DisposableObserver<Places>()
-		{
-			@Override
-			public void onNext(@io.reactivex.annotations.NonNull Places places)
-			{
-				Log.d(TAG, "===================================JSON===================================");
-				for(Result entry : places.getResults())
-				{
-					Log.d(TAG, entry.toString());
-				}
-				List<MyPlacesModel> myPlacesModelList = new ArrayList<>();
-				for(Result entry : places.getResults())
-				{
-					MyPlacesModel myPlacesModel = new MyPlacesModel(entry);
-					myPlacesModel.setWhereClause(MyPlacesModel.MyPlacesNames.PLACE_ID + "='" + myPlacesModel.getPlaceId() + "'");
-					myPlacesModelList.add(myPlacesModel);
-				}
+		compositeDisposable.add(
+				placesObserver.subscribeWith(createPlacesDisposableObserver()));
+//		compositeDisposable.add(placesObserver.subscribeWith(new DisposableObserver<Places>()
+//		{
+//			@Override
+//			public void onNext(@io.reactivex.annotations.NonNull Places places)
+//			{
+//				Log.d(TAG, "===================================JSON===================================");
+//				for(Result entry : places.getResults())
+//				{
+//					Log.d(TAG, entry.toString());
+//				}
+//				List<MyPlacesModel> myPlacesModelList = new ArrayList<>();
+//				for(Result entry : places.getResults())
+//				{
+//					MyPlacesModel myPlacesModel = new MyPlacesModel(entry);
+//					myPlacesModel.setWhereClause(MyPlacesModel.MyPlacesNames.PLACE_ID + "='" + myPlacesModel.getPlaceId() + "'");
+//					myPlacesModelList.add(myPlacesModel);
+//				}
 //				compositeDisposable.add(databaseClient.insertOrUpdateRxStyle(myPlacesModelList).subscribeWith(new DisposableObserver<DbOperationStatus>()
 //				{
 //					@Override
@@ -157,6 +193,76 @@ public class PlaceListActivity extends AppCompatActivity
 //						Log.d(TAG, "===================================DB COMPLETED===================================");
 //					}
 //				}));
+//				appController.updateResultList(myPlacesModelList);
+//				placeAdapter.notifyDataSetChanged();
+//			}
+//
+//			@Override
+//			public void onError(@io.reactivex.annotations.NonNull Throwable e)
+//			{
+//				Log.d(TAG, "===================================JSON ERROR===================================");
+//				Log.d(TAG, e.toString());
+//				view.setEnabled(true);
+//				Snackbar.make(view, "Refresh failed", Snackbar.LENGTH_SHORT)
+//						.setAction("Action", null).show();
+//			}
+//
+//			@Override
+//			public void onComplete()
+//			{
+//				Log.d(TAG, "===================================JSON COMPLETED===================================");
+//				view.setEnabled(true);
+//				Snackbar.make(view, "Refresh completed", Snackbar.LENGTH_SHORT)
+//						.setAction("Action", null).show();
+//			}
+//		}));
+	}
+
+	private DisposableObserver<Location> createLocationDisposableObserver()
+	{
+		return new DisposableObserver<Location>()
+		{
+			@Override
+			public void onNext(@io.reactivex.annotations.NonNull Location location)
+			{
+				Log.d(TAG, "locationDisposableObserver Lat " + location.getLatitude() + " Lon " + location.getLongitude());
+				etLat.setText(String.format("%f", location.getLatitude()));
+				etLong.setText(String.format("%f", location.getLongitude()));
+			}
+
+			@Override
+			public void onError(@io.reactivex.annotations.NonNull Throwable e)
+			{
+				Log.d(TAG, "locationDisposableObserver error " + e.toString());
+			}
+
+			@Override
+			public void onComplete()
+			{
+				Log.d(TAG, "locationDisposableObserver onComplete()");
+			}
+		};
+	}
+
+	private DisposableObserver<Places> createPlacesDisposableObserver()
+	{
+		return new DisposableObserver<Places>()
+		{
+			@Override
+			public void onNext(@io.reactivex.annotations.NonNull Places places)
+			{
+				Log.d(TAG, "===================================JSON===================================");
+				for(Result entry : places.getResults())
+				{
+					Log.d(TAG, entry.toString());
+				}
+				List<MyPlacesModel> myPlacesModelList = new ArrayList<>();
+				for(Result entry : places.getResults())
+				{
+					MyPlacesModel myPlacesModel = new MyPlacesModel(entry);
+					myPlacesModel.setWhereClause(MyPlacesModel.MyPlacesNames.PLACE_ID + "='" + myPlacesModel.getPlaceId() + "'");
+					myPlacesModelList.add(myPlacesModel);
+				}
 				appController.updateResultList(myPlacesModelList);
 				placeAdapter.notifyDataSetChanged();
 			}
@@ -166,8 +272,8 @@ public class PlaceListActivity extends AppCompatActivity
 			{
 				Log.d(TAG, "===================================JSON ERROR===================================");
 				Log.d(TAG, e.toString());
-				view.setEnabled(true);
-				Snackbar.make(view, "Refresh failed", Snackbar.LENGTH_SHORT)
+				fab.setEnabled(true);
+				Snackbar.make(fab, "Refresh failed", Snackbar.LENGTH_SHORT)
 						.setAction("Action", null).show();
 			}
 
@@ -175,10 +281,10 @@ public class PlaceListActivity extends AppCompatActivity
 			public void onComplete()
 			{
 				Log.d(TAG, "===================================JSON COMPLETED===================================");
-				view.setEnabled(true);
-				Snackbar.make(view, "Refresh completed", Snackbar.LENGTH_SHORT)
+				fab.setEnabled(true);
+				Snackbar.make(fab, "Refresh completed", Snackbar.LENGTH_SHORT)
 						.setAction("Action", null).show();
 			}
-		}));
+		};
 	}
 }

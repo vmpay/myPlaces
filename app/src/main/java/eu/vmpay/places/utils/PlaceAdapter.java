@@ -46,8 +46,7 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.ViewHolder>
 		TextView name = (TextView) view.findViewById(R.id.tvName);
 		TextView address = (TextView) view.findViewById(R.id.tvAddress);
 		SimpleDraweeView icon = (SimpleDraweeView) view.findViewById(R.id.ivImage);
-		ViewHolder viewHolder = new ViewHolder(view, name, address, icon);
-		return viewHolder;
+		return new ViewHolder(view, name, address, icon);
 	}
 
 	@Override
@@ -90,6 +89,11 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.ViewHolder>
 		return myPlacesModelList.size();
 	}
 
+	public void setTwoPane(boolean mTwoPane)
+	{
+		this.mTwoPane = mTwoPane;
+	}
+
 	public static class ViewHolder extends RecyclerView.ViewHolder
 	{
 		public View rootView;
@@ -106,10 +110,5 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.ViewHolder>
 			this.address = address;
 			this.icon = icon;
 		}
-	}
-
-	public void setTwoPane(boolean mTwoPane)
-	{
-		this.mTwoPane = mTwoPane;
 	}
 }

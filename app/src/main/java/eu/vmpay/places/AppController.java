@@ -1,5 +1,6 @@
 package eu.vmpay.places;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -17,6 +18,8 @@ import eu.vmpay.places.utils.database.DatabaseAccess;
 import eu.vmpay.places.utils.database.DatabaseSchema;
 import eu.vmpay.places.utils.database.IDatabaseClient;
 import eu.vmpay.places.utils.database.models.MyPlacesModel;
+import eu.vmpay.places.utils.location.ILocationClient;
+import eu.vmpay.places.utils.location.LocationClient;
 
 /**
  * Created by andrew on 23.06.17.
@@ -24,31 +27,29 @@ import eu.vmpay.places.utils.database.models.MyPlacesModel;
 
 public class AppController
 {
-	private final String TAG = "AppController";
-
 	private static AppController instance = new AppController();
+	private final String TAG = "AppController";
 	private Context context;
 	private boolean initialized = false;
 	private String googleApiKey = "";
+	private IRestClient restClient;
+	private IDatabaseClient databaseClient;
+	private ILocationClient locationClient;
+	private List<MyPlacesModel> myPlacesModelList = new ArrayList<>();
 
 	public static AppController getInstance()
 	{
 		return instance;
 	}
 
-	private IRestClient restClient;
-	private IDatabaseClient databaseClient;
-
-	private List<MyPlacesModel> myPlacesModelList = new ArrayList<>();
-
-	public void init(Context context)
+	public void init(Activity activity)
 	{
-		this.context = context;
+		this.context = activity;
 
 		if (!initialized)
 		{
 			try {
-				ApplicationInfo ai = context.getPackageManager().getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
+				ApplicationInfo ai = activity.getPackageManager().getApplicationInfo(activity.getPackageName(), PackageManager.GET_META_DATA);
 				Bundle bundle = ai.metaData;
 				googleApiKey = bundle.getString("com.google.android.geo.API_KEY");
 			} catch (PackageManager.NameNotFoundException e) {
@@ -57,9 +58,10 @@ public class AppController
 				Log.e(TAG, "Failed to load meta-data, NullPointer: " + e.getMessage());
 			}
 
+			locationClient = new LocationClient(activity);
 			restClient = new RestClient(googleApiKey);
-			databaseClient = new DatabaseAccess(DatabaseSchema.DATABASE_NAME, DatabaseSchema.DATABASE_VERSION, context, DatabaseSchema.TABLE_NAMES, DatabaseSchema.TABLE_CREATE_QUERIES);
-			Fresco.initialize(context);
+			databaseClient = new DatabaseAccess(DatabaseSchema.DATABASE_NAME, DatabaseSchema.DATABASE_VERSION, activity, DatabaseSchema.TABLE_NAMES, DatabaseSchema.TABLE_CREATE_QUERIES);
+			Fresco.initialize(activity);
 			initialized = true;
 
 			myPlacesModelList.clear();
@@ -91,5 +93,10 @@ public class AppController
 	public List<MyPlacesModel> getMyPlacesModelList()
 	{
 		return myPlacesModelList;
+	}
+
+	public ILocationClient getLocationClient()
+	{
+		return locationClient;
 	}
 }
