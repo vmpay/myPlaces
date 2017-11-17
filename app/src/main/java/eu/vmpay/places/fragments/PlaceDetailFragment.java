@@ -2,6 +2,7 @@ package eu.vmpay.places.fragments;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -64,6 +65,7 @@ public class PlaceDetailFragment extends Fragment implements OnMapReadyCallback
 	@Override
 	public void onMapReady(GoogleMap googleMap)
 	{
+		Log.d("detalFragment", "onMapReady");
 		mMap = googleMap;
 
 		LatLng location = new LatLng(mItem.getPositionLatitude(), mItem.getPositionLongitude());
